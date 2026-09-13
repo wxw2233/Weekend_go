@@ -1,0 +1,16 @@
+node_modules
+.next
+out
+data/
+backups/
+.ssh-tmp/
+.admin-pw.txt
+server.pid
+*.log
+.DS_Store
+.env
+.env.*
+!.env.example
+素材/
+.start-admin.cmd
+修复建议*.md

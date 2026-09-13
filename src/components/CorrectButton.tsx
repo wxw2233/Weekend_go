@@ -1,0 +1,32 @@
+"use client";
+
+import { useState } from "react";
+import type { RestType } from "@/lib/types";
+import CorrectModal from "@/components/CorrectModal";
+
+export default function CorrectButton({
+  companyId,
+  companyName,
+  defaultRestType,
+}: {
+  companyId: string;
+  companyName: string;
+  defaultRestType: RestType;
+}) {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <>
+      <button type="button" className="btn-primary" onClick={() => setOpen(true)}>
+        纠错 / 补充
+      </button>
+      <CorrectModal
+        companyId={companyId}
+        companyName={companyName}
+        defaultRestType={defaultRestType}
+        open={open}
+        onClose={() => setOpen(false)}
+      />
+    </>
+  );
+}
