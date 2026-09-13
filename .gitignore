@@ -10,7 +10,6 @@ server.pid
 .DS_Store
 .env
 .env.*
-!.env.example
 素材/
 .start-admin.cmd
 修复建议*.md
