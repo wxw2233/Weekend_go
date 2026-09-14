@@ -11,7 +11,8 @@ export async function POST(request: Request) {
   if (badCt) return badCt;
 
   const ip = clientIp(request);
-  const okKey = `login:ok:${ip}`;
+  // counts every credential attempt, success or failure
+  const tryKey = `login:try:${ip}`;
   const failKey = `login:fail:${ip}`;
 
   const failPeek = failCooldownPeek(failKey, 2_000);
@@ -21,7 +22,7 @@ export async function POST(request: Request) {
       { status: 429 },
     );
   }
-  const burst = rateLimitPeek(okKey, 10, 15 * 60 * 1000);
+  const burst = rateLimitPeek(tryKey, 10, 15 * 60 * 1000);
   if (!burst.ok) {
     return NextResponse.json(
       { error: `尝试过于频繁，请 ${burst.retryAfterSec} 秒后再试` },
@@ -46,17 +47,20 @@ export async function POST(request: Request) {
 
   if (!username.trim() || !password) {
     markFail(failKey);
+    rateLimitRecord(tryKey);
     return NextResponse.json({ error: "请输入用户名和密码" }, { status: 400 });
   }
 
   if (!verifyCaptcha(captchaToken, captchaText)) {
     markFail(failKey);
+    rateLimitRecord(tryKey);
     return NextResponse.json({ error: "验证码错误或已过期" }, { status: 400 });
   }
 
   const user = verifyPassword(username, password);
   if (!user) {
     markFail(failKey);
+    rateLimitRecord(tryKey);
     logWarn("login_failed", { ip });
     return NextResponse.json({ error: "用户名或密码错误" }, { status: 401 });
   }
@@ -65,7 +69,7 @@ export async function POST(request: Request) {
   revokeUserSessions(user.id);
   const token = createUserSession(user.id);
   await setUserSessionCookie(token);
-  rateLimitRecord(okKey);
+  rateLimitRecord(tryKey);
 
   return NextResponse.json({
     ok: true,

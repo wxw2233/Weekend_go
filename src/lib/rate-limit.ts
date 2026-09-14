@@ -97,6 +97,10 @@ export function clientIp(request: Request): string {
       // Right-most is appended by the trusted proxy; left-most is client-forged.
       if (parts.length) return parts[parts.length - 1]!;
     }
+    const real = request.headers.get("x-real-ip");
+    if (real) return real.trim();
   }
-  return request.headers.get("x-real-ip") || "local";
+  // Without TRUST_PROXY all clients share one bucket — client-set headers
+  // must never key the limiter.
+  return "local";
 }
