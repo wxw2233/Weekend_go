@@ -1,7 +1,7 @@
 node_modules
 .next
 out
-data/
+/data/
 backups/
 .ssh-tmp/
 .admin-pw.txt
