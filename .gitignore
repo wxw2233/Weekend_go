@@ -1,11 +1,11 @@
 node_modules
 .next
 out
-data/
-backups/
+/data/
+/backups/
 .ssh-tmp/
 .admin-pw.txt
-server.pid
+.server.pid
 *.log
 .DS_Store
 .env
