@@ -35,19 +35,19 @@ export default function RootLayout({
 
             <nav className="hidden items-center gap-1 text-sm md:flex">
               <Link
-                href="/#directory"
+                href="/sx#directory"
                 className="min-h-10 px-2.5 py-2 font-medium text-ink hover:text-rest"
               >
                 企业库
               </Link>
               <Link
-                href="/claim"
+                href="/sx/claim"
                 className="min-h-10 px-2.5 py-2 font-medium text-ink hover:text-rest"
               >
                 企业认领
               </Link>
               <Link
-                href="/submit"
+                href="/sx/submit"
                 className="min-h-10 px-2.5 py-2 font-medium text-ink hover:text-rest"
               >
                 提交标注

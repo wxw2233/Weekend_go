@@ -34,7 +34,7 @@ export default function HeroBand({
             <Link href="#directory" className="btn-primary w-full sm:w-auto">
               企业库
             </Link>
-            <Link href="/submit" className="btn-ghost w-full sm:w-auto">
+            <Link href="/sx/submit" className="btn-ghost w-full sm:w-auto">
               提交标注
             </Link>
           </div>

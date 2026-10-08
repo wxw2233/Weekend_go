@@ -73,13 +73,13 @@ export default function MobileNav() {
             id="mobile-menu"
             className="absolute right-0 z-50 mt-2 w-56 rounded-lg border border-line bg-white p-2 shadow-lift"
           >
-            <Link href="/#directory" className={linkClass} onClick={() => setOpen(false)}>
+            <Link href="/sx#directory" className={linkClass} onClick={() => setOpen(false)}>
               企业库
             </Link>
-            <Link href="/claim" className={linkClass} onClick={() => setOpen(false)}>
+            <Link href="/sx/claim" className={linkClass} onClick={() => setOpen(false)}>
               企业认领
             </Link>
-            <Link href="/submit" className={linkClass} onClick={() => setOpen(false)}>
+            <Link href="/sx/submit" className={linkClass} onClick={() => setOpen(false)}>
               提交标注
             </Link>
 

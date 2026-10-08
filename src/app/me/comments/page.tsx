@@ -69,7 +69,7 @@ export default function MyCommentsPage() {
       ) : items.length === 0 ? (
         <div className="mt-6 rounded-lg border border-dashed border-line bg-white px-4 py-12 text-center">
           <p className="text-sm font-semibold text-ink">还没有评论</p>
-          <Link href="/#directory" className="btn-primary mt-4">
+          <Link href="/sx#directory" className="btn-primary mt-4">
             去企业库看看
           </Link>
         </div>
@@ -82,7 +82,7 @@ export default function MyCommentsPage() {
             >
               <div className="flex flex-wrap items-baseline justify-between gap-2">
                 <Link
-                  href={`/companies/${c.companyId}`}
+                  href={`/sx/companies/${c.companyId}`}
                   className="font-semibold text-rest hover:underline"
                 >
                   {c.companyName}

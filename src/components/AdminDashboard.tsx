@@ -351,7 +351,7 @@ export default function AdminDashboard({ token }: { token: string }) {
             </div>
             <div className="flex gap-2">
               <Link
-                href={`/companies/${c.id}`}
+                href={`/sx/companies/${c.id}`}
                 className="btn-ghost !min-h-9 px-3 !text-xs"
               >
                 查看

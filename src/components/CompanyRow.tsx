@@ -16,7 +16,7 @@ export default function CompanyRow({ company }: { company: Company }) {
 
   return (
     <Link
-      href={`/companies/${company.id}`}
+      href={`/sx/companies/${company.id}`}
       className={`group block rounded-lg border-2 p-3.5 transition active:scale-[0.99] sm:p-4 ${cardBorder[level]}`}
     >
       <div className="flex items-start justify-between gap-2">

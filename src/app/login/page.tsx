@@ -123,7 +123,7 @@ function LoginForm({ mode: initialMode }: { mode: "login" | "register" }) {
           data.error || (mode === "login" ? "登录失败" : "注册失败"),
         );
       }
-      window.location.href = "/";
+      window.location.href = "/sx";
     } catch (err) {
       setError(err instanceof Error ? err.message : "操作失败");
       setLoading(false);

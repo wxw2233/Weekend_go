@@ -52,7 +52,7 @@ export default async function CompanyPage({ params }: Props) {
   return (
     <div className="container-page py-8">
       <Link
-        href="/#directory"
+        href="/sx#directory"
         className="text-sm font-medium text-haze hover:text-rest"
       >
         ← 返回
