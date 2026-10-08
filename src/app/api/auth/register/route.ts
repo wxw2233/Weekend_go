@@ -4,6 +4,7 @@ import { clientIp, rateLimit } from "@/lib/rate-limit";
 import {
   createUser,
   createUserSession,
+  findUserByEmail,
   findUserByUsername,
   normalizeUsername,
   validatePassword,
@@ -11,6 +12,7 @@ import {
 } from "@/lib/user-auth";
 import { requireJson } from "@/lib/http-guard";
 import { verifyCaptcha } from "@/lib/captcha";
+import { normalizeEmail, validateEmail, verifyEmailCode } from "@/lib/email-code";
 import { logWarn } from "@/lib/log";
 
 export async function POST(request: Request) {
@@ -46,6 +48,8 @@ export async function POST(request: Request) {
 
   const username = typeof body.username === "string" ? body.username : "";
   const password = typeof body.password === "string" ? body.password : "";
+  const emailRaw = typeof body.email === "string" ? body.email : "";
+  const emailCode = typeof body.emailCode === "string" ? body.emailCode : "";
   const captchaToken =
     typeof body.captchaToken === "string" ? body.captchaToken : "";
   const captchaText =
@@ -53,6 +57,18 @@ export async function POST(request: Request) {
 
   if (!verifyCaptcha(captchaToken, captchaText)) {
     return NextResponse.json({ error: "验证码错误或已过期" }, { status: 400 });
+  }
+
+  const email = normalizeEmail(emailRaw);
+  const emailError = validateEmail(email);
+  if (emailError) {
+    return NextResponse.json({ error: emailError }, { status: 400 });
+  }
+  if (!verifyEmailCode(email, "register", emailCode)) {
+    return NextResponse.json(
+      { error: "邮箱验证码错误或已过期，请重新获取" },
+      { status: 400 },
+    );
   }
 
   const usernameError = validateUsername(username);
@@ -67,8 +83,11 @@ export async function POST(request: Request) {
   if (findUserByUsername(username)) {
     return NextResponse.json({ error: "用户名已被占用" }, { status: 409 });
   }
+  if (findUserByEmail(email)) {
+    return NextResponse.json({ error: "该邮箱已被使用" }, { status: 409 });
+  }
 
-  const user = createUser(normalizeUsername(username), password);
+  const user = createUser(normalizeUsername(username), password, email);
   const token = createUserSession(user.id);
   await setUserSessionCookie(token);
 

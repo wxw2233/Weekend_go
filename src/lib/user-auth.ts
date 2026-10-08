@@ -73,7 +73,26 @@ export function findUserByUsername(username: string): PublicUser | null {
   };
 }
 
-export function createUser(username: string, password: string): PublicUser {
+export function findUserByEmail(email: string): PublicUser | null {
+  const row = getDb()
+    .prepare("SELECT id, username, role, createdAt FROM users WHERE email = ?")
+    .get(email) as
+    | { id: string; username: string; role?: string; createdAt: string }
+    | undefined;
+  if (!row) return null;
+  return {
+    id: row.id,
+    username: row.username,
+    role: toRole(row.role),
+    createdAt: row.createdAt,
+  };
+}
+
+export function createUser(
+  username: string,
+  password: string,
+  email?: string,
+): PublicUser {
   const name = normalizeUsername(username);
   const salt = randomBytes(16).toString("hex");
   const passwordHash = hashPassword(password, salt);
@@ -83,9 +102,9 @@ export function createUser(username: string, password: string): PublicUser {
   const role: UserRole = "user";
   getDb()
     .prepare(
-      "INSERT INTO users (id, username, passwordHash, salt, role, createdAt) VALUES (?, ?, ?, ?, ?, ?)",
+      "INSERT INTO users (id, username, passwordHash, salt, role, createdAt, email) VALUES (?, ?, ?, ?, ?, ?, ?)",
     )
-    .run(id, name, passwordHash, salt, role, createdAt);
+    .run(id, name, passwordHash, salt, role, createdAt, email ?? null);
   return { id, username: name, role, createdAt };
 }
 
@@ -205,6 +224,28 @@ export function changeUserPassword(
     .run(passwordHash, salt, userId);
   // force re-login on other devices
   getDb().prepare("DELETE FROM user_sessions WHERE userId = ?").run(userId);
+  return { ok: true };
+}
+
+export function resetUserPasswordByEmail(
+  email: string,
+  newPassword: string,
+): { ok: boolean; error?: string } {
+  const row = getDb()
+    .prepare("SELECT id FROM users WHERE email = ?")
+    .get(email) as { id?: string } | undefined;
+  if (!row?.id) return { ok: false, error: "该邮箱未绑定账号" };
+
+  const passwordError = validatePassword(newPassword);
+  if (passwordError) return { ok: false, error: passwordError };
+
+  const salt = randomBytes(16).toString("hex");
+  const passwordHash = hashPassword(newPassword, salt);
+  getDb()
+    .prepare("UPDATE users SET passwordHash = ?, salt = ? WHERE id = ?")
+    .run(passwordHash, salt, row.id);
+  // force re-login on all devices
+  getDb().prepare("DELETE FROM user_sessions WHERE userId = ?").run(row.id);
   return { ok: true };
 }
 

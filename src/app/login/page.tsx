@@ -12,10 +12,44 @@ function LoginForm({ mode: initialMode }: { mode: "login" | "register" }) {
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
   const [website, setWebsite] = useState(""); // honeypot, real users never see it
+  const [email, setEmail] = useState("");
+  const [emailCode, setEmailCode] = useState("");
+  const [sending, setSending] = useState(false);
+  const [countdown, setCountdown] = useState(0);
   const [captchaText, setCaptchaText] = useState("");
   const [captcha, setCaptcha] = useState<CaptchaData | null>(null);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (countdown <= 0) return;
+    const t = setTimeout(() => setCountdown((c) => c - 1), 1000);
+    return () => clearTimeout(t);
+  }, [countdown]);
+
+  async function sendEmailCode() {
+    setError("");
+    if (!email.trim()) {
+      setError("请先输入邮箱");
+      return;
+    }
+    setSending(true);
+    try {
+      const res = await fetch("/api/auth/email-code", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "same-origin",
+        body: JSON.stringify({ email: email.trim(), scene: "register" }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || "验证码发送失败");
+      setCountdown(60);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "验证码发送失败");
+    } finally {
+      setSending(false);
+    }
+  }
 
   const refreshCaptcha = useCallback(async () => {
     setCaptchaText("");
@@ -49,6 +83,16 @@ function LoginForm({ mode: initialMode }: { mode: "login" | "register" }) {
       setError("请先获取验证码");
       return;
     }
+    if (mode === "register") {
+      if (!email.trim()) {
+        setError("请输入邮箱");
+        return;
+      }
+      if (!emailCode.trim()) {
+        setError("请输入邮箱验证码");
+        return;
+      }
+    }
 
     setLoading(true);
     try {
@@ -59,6 +103,8 @@ function LoginForm({ mode: initialMode }: { mode: "login" | "register" }) {
         captchaToken: captcha?.token || "",
       };
       if (mode === "register") {
+        body.email = email.trim();
+        body.emailCode = emailCode.trim();
         body.website = website; // honeypot
       }
       const res = await fetch(
@@ -162,6 +208,55 @@ function LoginForm({ mode: initialMode }: { mode: "login" | "register" }) {
             />
           </div>
         )}
+        {mode === "register" && (
+          <div>
+            <label className="label" htmlFor="email">
+              邮箱
+            </label>
+            <div className="flex gap-2">
+              <input
+                id="email"
+                type="email"
+                className="field flex-1"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                placeholder="用于验证和找回密码"
+                autoComplete="email"
+              />
+              <button
+                type="button"
+                className="min-h-11 shrink-0 rounded-md border border-line bg-paper px-3 text-sm font-semibold text-ink disabled:opacity-50"
+                onClick={sendEmailCode}
+                disabled={sending || countdown > 0}
+              >
+                {countdown > 0
+                  ? `${countdown}s 后重发`
+                  : sending
+                    ? "发送中…"
+                    : "发送验证码"}
+              </button>
+            </div>
+          </div>
+        )}
+        {mode === "register" && (
+          <div>
+            <label className="label" htmlFor="emailCode">
+              邮箱验证码
+            </label>
+            <input
+              id="emailCode"
+              className="field"
+              value={emailCode}
+              onChange={(e) => setEmailCode(e.target.value.replace(/\D/g, ""))}
+              required
+              maxLength={6}
+              inputMode="numeric"
+              placeholder="6 位数字，10 分钟内有效"
+              autoComplete="one-time-code"
+            />
+          </div>
+        )}
 
         {/* Honeypot: hidden from real users; bots autofilling it get silently dropped. */}
         <div className="hidden" aria-hidden="true">
@@ -216,6 +311,14 @@ function LoginForm({ mode: initialMode }: { mode: "login" | "register" }) {
             </div>
             <p className="mt-1 text-xs text-haze">点击图片可更换</p>
           </div>
+
+        {mode === "login" && (
+          <p className="-mt-2 text-right text-xs">
+            <Link href="/forgot" className="text-haze hover:text-rest">
+              忘记密码？
+            </Link>
+          </p>
+        )}
 
         {error && <p className="text-sm font-medium text-caution">{error}</p>}
 

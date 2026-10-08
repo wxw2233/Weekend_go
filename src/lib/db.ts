@@ -105,6 +105,15 @@ export function getDb(): DatabaseSync {
       createdAt TEXT NOT NULL,
       PRIMARY KEY (commentId, userId)
     );
+    CREATE TABLE IF NOT EXISTS email_codes (
+      email TEXT NOT NULL,
+      scene TEXT NOT NULL,
+      code TEXT NOT NULL,
+      exp TEXT NOT NULL,
+      attempts INTEGER NOT NULL DEFAULT 0,
+      lastSent TEXT NOT NULL,
+      PRIMARY KEY (email, scene)
+    );
     CREATE INDEX IF NOT EXISTS idx_submissions_status ON submissions(status);
     CREATE INDEX IF NOT EXISTS idx_claims_status ON claims(status);
     CREATE INDEX IF NOT EXISTS idx_user_sessions_user ON user_sessions(userId);
@@ -156,6 +165,20 @@ export function getDb(): DatabaseSync {
     db.exec(`ALTER TABLE users ADD COLUMN role TEXT NOT NULL DEFAULT 'user'`);
   } catch {
     // column already exists
+  }
+
+  try {
+    db.exec(`ALTER TABLE users ADD COLUMN email TEXT`);
+  } catch {
+    // column already exists
+  }
+  try {
+    // Partial unique index: multiple NULLs allowed (legacy users), one email per account.
+    db.exec(
+      `CREATE UNIQUE INDEX IF NOT EXISTS idx_users_email ON users(email) WHERE email IS NOT NULL`,
+    );
+  } catch {
+    // index already exists
   }
 
   const count = db.prepare("SELECT COUNT(*) AS n FROM companies").get() as {
