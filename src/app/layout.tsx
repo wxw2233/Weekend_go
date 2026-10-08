@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import Link from "next/link";
 import AuthNav from "@/components/AuthNav";
+import BindEmailBanner from "@/components/BindEmailBanner";
 import MobileNav from "@/components/MobileNav";
 import "./globals.css";
 
@@ -59,6 +60,7 @@ export default function RootLayout({
             </div>
           </div>
         </header>
+        <BindEmailBanner />
         <main className="pb-[env(safe-area-inset-bottom)]">{children}</main>
         <footer className="border-t border-line bg-paper">
           <div className="container-page py-6 text-sm text-haze">

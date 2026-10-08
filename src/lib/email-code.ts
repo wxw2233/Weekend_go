@@ -7,7 +7,7 @@ import { logWarn } from "@/lib/log";
  * and verify routes). Single active code per (email, scene).
  */
 
-export type EmailScene = "register" | "reset";
+export type EmailScene = "register" | "reset" | "bind";
 
 const CODE_TTL_MS = 10 * 60 * 1000; // 10 minutes
 const RESEND_COOLDOWN_MS = 60 * 1000; // 60s between sends

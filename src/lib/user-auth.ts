@@ -10,6 +10,7 @@ export type PublicUser = {
   username: string;
   role: UserRole;
   createdAt: string;
+  email?: string | null;
 };
 
 function toRole(v: unknown): UserRole {
@@ -157,7 +158,7 @@ export function getUserBySession(token: string | null | undefined): PublicUser |
   if (!token) return null;
   const row = getDb()
     .prepare(
-      `SELECT u.id, u.username, u.role, u.createdAt, s.expiresAt
+      `SELECT u.id, u.username, u.role, u.createdAt, u.email, s.expiresAt
        FROM user_sessions s
        JOIN users u ON u.id = s.userId
        WHERE s.token = ?`,
@@ -168,6 +169,7 @@ export function getUserBySession(token: string | null | undefined): PublicUser |
         username: string;
         role?: string;
         createdAt: string;
+        email?: string | null;
         expiresAt: string;
       }
     | undefined;
@@ -178,6 +180,7 @@ export function getUserBySession(token: string | null | undefined): PublicUser |
     username: row.username,
     role: toRole(row.role),
     createdAt: row.createdAt,
+    email: row.email ?? null,
   };
 }
 
@@ -247,6 +250,25 @@ export function resetUserPasswordByEmail(
   // force re-login on all devices
   getDb().prepare("DELETE FROM user_sessions WHERE userId = ?").run(row.id);
   return { ok: true };
+}
+
+export function bindUserEmail(
+  userId: string,
+  email: string,
+): { ok: boolean; error?: string } {
+  try {
+    const res = getDb()
+      .prepare("UPDATE users SET email = ? WHERE id = ?")
+      .run(email, userId);
+    if (Number(res.changes) === 0) return { ok: false, error: "用户不存在" };
+    return { ok: true };
+  } catch (e) {
+    // Unique index on email: someone already bound this address.
+    if (e instanceof Error && e.message.includes("UNIQUE")) {
+      return { ok: false, error: "该邮箱已被使用" };
+    }
+    throw e;
+  }
 }
 
 export function deleteUserAccount(

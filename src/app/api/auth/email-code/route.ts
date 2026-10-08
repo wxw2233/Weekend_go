@@ -9,6 +9,7 @@ import {
   validateEmail,
 } from "@/lib/email-code";
 import { findUserByEmail } from "@/lib/user-auth";
+import { getRequestUser } from "@/lib/user-auth-http";
 import { mailConfigured, sendMail, verificationEmailHtml } from "@/lib/mailer";
 import { logWarn } from "@/lib/log";
 
@@ -35,12 +36,31 @@ export async function POST(request: Request) {
   }
 
   const emailRaw = typeof body.email === "string" ? body.email : "";
-  const scene: EmailScene = body.scene === "reset" ? "reset" : "register";
+  const scene: EmailScene =
+    body.scene === "reset"
+      ? "reset"
+      : body.scene === "bind"
+        ? "bind"
+        : "register";
   const email = normalizeEmail(emailRaw);
 
   const emailError = validateEmail(email);
   if (emailError) {
     return NextResponse.json({ error: emailError }, { status: 400 });
+  }
+
+  // Binding requires a logged-in user.
+  if (scene === "bind") {
+    const user = await getRequestUser(request);
+    if (!user) {
+      return NextResponse.json({ error: "请先登录" }, { status: 401 });
+    }
+    if (user.email) {
+      return NextResponse.json(
+        { error: "当前账号已绑定邮箱" },
+        { status: 409 },
+      );
+    }
   }
 
   // Per-email caps: 1/min and 5/hour.
@@ -59,7 +79,7 @@ export async function POST(request: Request) {
     );
   }
 
-  if (scene === "register") {
+  if (scene === "register" || scene === "bind") {
     if (findUserByEmail(email)) {
       return NextResponse.json({ error: "该邮箱已被使用" }, { status: 409 });
     }
@@ -80,7 +100,8 @@ export async function POST(request: Request) {
   }
 
   const code = issueEmailCode(email, scene);
-  const purpose = scene === "register" ? "注册" : "重置密码";
+  const purpose =
+    scene === "register" ? "注册" : scene === "bind" ? "绑定邮箱" : "重置密码";
   try {
     await sendMail({
       to: email,

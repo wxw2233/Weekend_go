@@ -61,8 +61,12 @@ export async function sendMail(opts: {
   }
 }
 
-export function verificationEmailHtml(code: string, scene: "register" | "reset"): string {
-  const purpose = scene === "register" ? "注册账号" : "重置密码";
+export function verificationEmailHtml(
+  code: string,
+  scene: "register" | "reset" | "bind",
+): string {
+  const purpose =
+    scene === "register" ? "注册账号" : scene === "bind" ? "绑定邮箱" : "重置密码";
   return `
   <div style="font-family:system-ui,-apple-system,'PingFang SC','Microsoft YaHei',sans-serif;max-width:480px;margin:0 auto;padding:24px;">
     <h2 style="color:#1f6b4a;margin:0 0 12px;">双休go! — ${purpose}验证码</h2>
