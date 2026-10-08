@@ -10,12 +10,19 @@ import {
   validateUsername,
 } from "@/lib/user-auth";
 import { requireJson } from "@/lib/http-guard";
+import { verifyCaptcha } from "@/lib/captcha";
+import { logWarn } from "@/lib/log";
 
 export async function POST(request: Request) {
   const badCt = requireJson(request);
   if (badCt) return badCt;
 
-  const limited = rateLimit(`register:${clientIp(request)}`, 5, 60 * 60 * 1000);
+  // Kill switch: set REGISTRATION_OPEN=0 to close signups entirely.
+  if (process.env.REGISTRATION_OPEN === "0") {
+    return NextResponse.json({ error: "注册暂未开放" }, { status: 403 });
+  }
+
+  const limited = rateLimit(`register:${clientIp(request)}`, 3, 60 * 60 * 1000);
   if (!limited.ok) {
     return NextResponse.json(
       { error: `注册过于频繁，请 ${limited.retryAfterSec} 秒后再试` },
@@ -30,8 +37,23 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "无效请求体" }, { status: 400 });
   }
 
+  // Honeypot: hidden field real users never fill. Pretend success, create nothing.
+  if (typeof body.website === "string" && body.website.trim() !== "") {
+    const ip = clientIp(request);
+    logWarn("register_honeypot_hit", { ip });
+    return NextResponse.json({ ok: true });
+  }
+
   const username = typeof body.username === "string" ? body.username : "";
   const password = typeof body.password === "string" ? body.password : "";
+  const captchaToken =
+    typeof body.captchaToken === "string" ? body.captchaToken : "";
+  const captchaText =
+    typeof body.captchaText === "string" ? body.captchaText : "";
+
+  if (!verifyCaptcha(captchaToken, captchaText)) {
+    return NextResponse.json({ error: "验证码错误或已过期" }, { status: 400 });
+  }
 
   const usernameError = validateUsername(username);
   if (usernameError) {

@@ -11,6 +11,7 @@ function LoginForm({ mode: initialMode }: { mode: "login" | "register" }) {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
+  const [website, setWebsite] = useState(""); // honeypot, real users never see it
   const [captchaText, setCaptchaText] = useState("");
   const [captcha, setCaptcha] = useState<CaptchaData | null>(null);
   const [error, setError] = useState("");
@@ -29,7 +30,7 @@ function LoginForm({ mode: initialMode }: { mode: "login" | "register" }) {
   }, []);
 
   useEffect(() => {
-    if (mode === "login") refreshCaptcha();
+    refreshCaptcha();
   }, [mode, refreshCaptcha]);
 
   async function onSubmit(e: React.FormEvent) {
@@ -40,23 +41,25 @@ function LoginForm({ mode: initialMode }: { mode: "login" | "register" }) {
       setError("两次输入的密码不一致");
       return;
     }
-    if (mode === "login") {
-      if (!captchaText.trim()) {
-        setError("请输入验证码");
-        return;
-      }
-      if (!captcha?.token) {
-        setError("请先获取验证码");
-        return;
-      }
+    if (!captchaText.trim()) {
+      setError("请输入验证码");
+      return;
+    }
+    if (!captcha?.token) {
+      setError("请先获取验证码");
+      return;
     }
 
     setLoading(true);
     try {
-      const body: Record<string, string> = { username, password };
-      if (mode === "login") {
-        body.captchaText = captchaText.trim();
-        body.captchaToken = captcha?.token || "";
+      const body: Record<string, string> = {
+        username,
+        password,
+        captchaText: captchaText.trim(),
+        captchaToken: captcha?.token || "",
+      };
+      if (mode === "register") {
+        body.website = website; // honeypot
       }
       const res = await fetch(
         mode === "login" ? "/api/auth/login" : "/api/auth/register",
@@ -69,7 +72,7 @@ function LoginForm({ mode: initialMode }: { mode: "login" | "register" }) {
       );
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
-        if (mode === "login") await refreshCaptcha();
+        await refreshCaptcha();
         throw new Error(
           data.error || (mode === "login" ? "登录失败" : "注册失败"),
         );
@@ -134,8 +137,14 @@ function LoginForm({ mode: initialMode }: { mode: "login" | "register" }) {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
+            minLength={mode === "register" ? 8 : undefined}
             autoComplete={mode === "login" ? "current-password" : "new-password"}
           />
+          {mode === "register" && (
+            <p className="mt-1 text-xs text-haze">
+              至少 8 位，需同时包含字母和数字
+            </p>
+          )}
         </div>
         {mode === "register" && (
           <div>
@@ -154,11 +163,23 @@ function LoginForm({ mode: initialMode }: { mode: "login" | "register" }) {
           </div>
         )}
 
-        {mode === "login" && (
-          <div>
-            <label className="label" htmlFor="captcha">
-              验证码
-            </label>
+        {/* Honeypot: hidden from real users; bots autofilling it get silently dropped. */}
+        <div className="hidden" aria-hidden="true">
+          <label htmlFor="website">网站</label>
+          <input
+            id="website"
+            name="website"
+            tabIndex={-1}
+            autoComplete="off"
+            value={website}
+            onChange={(e) => setWebsite(e.target.value)}
+          />
+        </div>
+
+        <div>
+          <label className="label" htmlFor="captcha">
+            验证码
+          </label>
             <div className="flex gap-2">
               <input
                 id="captcha"
@@ -195,7 +216,6 @@ function LoginForm({ mode: initialMode }: { mode: "login" | "register" }) {
             </div>
             <p className="mt-1 text-xs text-haze">点击图片可更换</p>
           </div>
-        )}
 
         {error && <p className="text-sm font-medium text-caution">{error}</p>}
 

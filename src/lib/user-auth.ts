@@ -49,8 +49,11 @@ export function validateUsername(username: string): string | null {
 }
 
 export function validatePassword(password: string): string | null {
-  if (password.length < 6 || password.length > 72) {
-    return "密码长度需在 6–72 位之间";
+  if (password.length < 8 || password.length > 72) {
+    return "密码长度需在 8–72 位之间";
+  }
+  if (!/[A-Za-z]/.test(password) || !/\d/.test(password)) {
+    return "密码需同时包含字母和数字";
   }
   return null;
 }
