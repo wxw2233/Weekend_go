@@ -53,7 +53,7 @@
 | 项 | 值 |
 |----|-----|
 | 域名 | `wxxw2233.xyz`（含 `www`） |
-| 服务器 IP | `[REDACTED]` |
+| 服务器 IP | 通过 DNS 解析域名获取（不写入文档） |
 | 系统 | Ubuntu 24.04.1 LTS |
 | Node | v22.x（NodeSource） |
 | 应用目录 | `/var/www/weekend-shopping` |
