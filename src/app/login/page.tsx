@@ -6,7 +6,13 @@ import { useSearchParams } from "next/navigation";
 
 type CaptchaData = { token: string; dataUrl: string };
 
-function LoginForm({ mode: initialMode }: { mode: "login" | "register" }) {
+function LoginForm({
+  mode: initialMode,
+  next = "",
+}: {
+  mode: "login" | "register";
+  next?: string;
+}) {
   const [mode, setMode] = useState(initialMode);
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -123,7 +129,7 @@ function LoginForm({ mode: initialMode }: { mode: "login" | "register" }) {
           data.error || (mode === "login" ? "登录失败" : "注册失败"),
         );
       }
-      window.location.href = "/sx";
+      window.location.href = next || "/sx";
     } catch (err) {
       setError(err instanceof Error ? err.message : "操作失败");
       setLoading(false);
@@ -339,7 +345,10 @@ function LoginForm({ mode: initialMode }: { mode: "login" | "register" }) {
 function LoginInner() {
   const params = useSearchParams();
   const mode = params.get("mode") === "register" ? "register" : "login";
-  return <LoginForm mode={mode} />;
+  const rawNext = params.get("next") || "";
+  const next =
+    rawNext.startsWith("/") && !rawNext.startsWith("//") ? rawNext : "";
+  return <LoginForm mode={mode} next={next} />;
 }
 
 export default function LoginPage() {

@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
-import { clientIp, rateLimit } from "@/lib/rate-limit";
+import { rateLimit } from "@/lib/rate-limit";
 import { requireJson } from "@/lib/http-guard";
-import { castVote, getPollStats, voterKeyFromIp } from "@/lib/poll";
+import { castVote, getPollStats } from "@/lib/poll";
+import { getRequestUser, userUnauthorized } from "@/lib/user-auth-http";
 import type { PollAnswers, PollDimension } from "@/lib/poll-options";
 import { POLL_DIMENSIONS } from "@/lib/poll-options";
 
@@ -9,8 +10,10 @@ export async function POST(request: Request) {
   const badCt = requireJson(request);
   if (badCt) return badCt;
 
-  const ip = clientIp(request);
-  const limited = rateLimit(`poll:ip:${ip}`, 10, 60 * 60 * 1000);
+  const user = await getRequestUser(request);
+  if (!user) return userUnauthorized();
+
+  const limited = rateLimit(`poll:vote:${user.id}`, 10, 60 * 60 * 1000);
   if (!limited.ok) {
     return NextResponse.json(
       { error: `操作过于频繁，请 ${limited.retryAfterSec} 秒后再试` },
@@ -39,7 +42,7 @@ export async function POST(request: Request) {
   }
 
   try {
-    const result = castVote(voterKeyFromIp(ip), answers);
+    const result = castVote(`u:${user.id}`, answers);
     if (!result.ok) {
       return NextResponse.json({ error: result.error }, { status: 400 });
     }

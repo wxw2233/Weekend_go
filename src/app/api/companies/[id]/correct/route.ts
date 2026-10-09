@@ -4,6 +4,7 @@ import { clientIp, rateLimit } from "@/lib/rate-limit";
 import { REST_TYPES, type RestType } from "@/lib/types";
 import { parseRestDays, validateRestDays } from "@/lib/rest-days";
 import { requireJson } from "@/lib/http-guard";
+import { getRequestUser, userUnauthorized } from "@/lib/user-auth-http";
 
 export async function POST(
   request: Request,
@@ -11,6 +12,9 @@ export async function POST(
 ) {
   const badCt = requireJson(request);
   if (badCt) return badCt;
+
+  const user = await getRequestUser(request);
+  if (!user) return userUnauthorized();
 
   const { id } = await ctx.params;
   const company = await getCompany(id);

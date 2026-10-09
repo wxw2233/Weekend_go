@@ -7,6 +7,7 @@ import CorrectButton from "@/components/CorrectButton";
 import CommentsSection from "@/components/CommentsSection";
 import AdminDeleteCompany from "@/components/AdminDeleteCompany";
 import { getCompany } from "@/lib/store";
+import { getCurrentUser } from "@/lib/user-auth-http";
 import { restDaysPerWeek, restLevel } from "@/lib/types";
 
 const cardBorder: Record<string, string> = {
@@ -46,6 +47,7 @@ export default async function CompanyPage({ params }: Props) {
   const { id } = await params;
   const company = await getCompany(id);
   if (!company) notFound();
+  const user = await getCurrentUser();
   const level = restLevel(company.restType, company.restDays);
   const days = company.restDays?.length ?? restDaysPerWeek(company.restType);
 
@@ -112,6 +114,7 @@ export default async function CompanyPage({ params }: Props) {
           companyId={company.id}
           companyName={company.name}
           defaultRestType={company.restType}
+          isLoggedIn={Boolean(user)}
         />
         <AdminDeleteCompany
           companyId={company.id}

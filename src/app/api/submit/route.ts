@@ -10,6 +10,7 @@ import {
 import { REST_TYPES, type RestType } from "@/lib/types";
 import { parseRestDays, validateRestDays } from "@/lib/rest-days";
 import { requireJson } from "@/lib/http-guard";
+import { getRequestUser, userUnauthorized } from "@/lib/user-auth-http";
 
 /**
  * 成功才计入主配额；1 分钟内成功 ≤3 次不触发。
@@ -36,6 +37,9 @@ function checkSubmitLimit(ip: string) {
 export async function POST(request: Request) {
   const badCt = requireJson(request);
   if (badCt) return badCt;
+
+  const user = await getRequestUser(request);
+  if (!user) return userUnauthorized();
 
   const ip = clientIp(request);
   const limit = checkSubmitLimit(ip);

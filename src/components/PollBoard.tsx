@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import {
   DIMENSION_LABEL,
   POLL_DIMENSIONS,
@@ -11,7 +12,7 @@ import {
 } from "@/lib/poll-options";
 import type { PollStats } from "@/lib/poll";
 
-type Props = { initialStats: PollStats };
+type Props = { initialStats: PollStats; isLoggedIn: boolean };
 
 /* ---------- 每个维度的主题色 ---------- */
 
@@ -445,6 +446,7 @@ type SectionProps = {
   dim: PollDimension;
   index: number;
   stats: PollStats;
+  isLoggedIn: boolean;
   choice?: string;
   myVote?: string;
   busy: boolean;
@@ -457,6 +459,7 @@ function DimensionSection({
   dim,
   index,
   stats,
+  isLoggedIn,
   choice,
   myVote,
   busy,
@@ -488,41 +491,59 @@ function DimensionSection({
         )}
       </div>
 
-      <div className="mt-4 flex flex-col gap-3 sm:flex-row">
-        <select
-          value={choice ?? ""}
-          onChange={(e) => onSelect(e.target.value)}
-          className="w-full flex-1 rounded-md border border-line bg-white px-3 py-2.5 text-sm text-ink focus:border-rest focus:outline-none"
-          aria-label={DIMENSION_LABEL[dim]}
-        >
-          <option value="">请选择…</option>
-          {POLL_OPTIONS[dim].map((o) => (
-            <option key={o.key} value={o.key}>
-              {o.label}
-            </option>
-          ))}
-        </select>
-        <button
-          type="button"
-          onClick={onSubmit}
-          disabled={busy || !choice}
-          className="inline-flex min-h-11 shrink-0 items-center justify-center rounded-md px-6 text-sm font-bold text-white transition hover:opacity-90 disabled:opacity-60"
-          style={{ backgroundColor: theme.base }}
-        >
-          {busy ? "提交中…" : myVote ? "更新投票" : "投一票"}
-        </button>
-      </div>
-      <p className="mt-1.5 text-xs text-haze">
-        {DIM_DESC[dim]} ·{" "}
-        {myVote ? "重新选择挡位并提交即可修改" : "选择挡位后点击按钮提交"}
-      </p>
-      {msg && (
-        <p
-          className={`mt-1 text-sm ${msg.ok ? "text-rest" : "text-danger"}`}
-          role="status"
-        >
-          {msg.text}
-        </p>
+      {isLoggedIn ? (
+        <>
+          <div className="mt-4 flex flex-col gap-3 sm:flex-row">
+            <select
+              value={choice ?? ""}
+              onChange={(e) => onSelect(e.target.value)}
+              className="w-full flex-1 rounded-md border border-line bg-white px-3 py-2.5 text-sm text-ink focus:border-rest focus:outline-none"
+              aria-label={DIMENSION_LABEL[dim]}
+            >
+              <option value="">请选择…</option>
+              {POLL_OPTIONS[dim].map((o) => (
+                <option key={o.key} value={o.key}>
+                  {o.label}
+                </option>
+              ))}
+            </select>
+            <button
+              type="button"
+              onClick={onSubmit}
+              disabled={busy || !choice}
+              className="inline-flex min-h-11 shrink-0 items-center justify-center rounded-md px-6 text-sm font-bold text-white transition hover:opacity-90 disabled:opacity-60"
+              style={{ backgroundColor: theme.base }}
+            >
+              {busy ? "提交中…" : myVote ? "更新投票" : "投一票"}
+            </button>
+          </div>
+          <p className="mt-1.5 text-xs text-haze">
+            {DIM_DESC[dim]} ·{" "}
+            {myVote ? "重新选择挡位并提交即可修改" : "选择挡位后点击按钮提交"}
+          </p>
+          {msg && (
+            <p
+              className={`mt-1 text-sm ${msg.ok ? "text-rest" : "text-danger"}`}
+              role="status"
+            >
+              {msg.text}
+            </p>
+          )}
+        </>
+      ) : (
+        <div className="mt-4 flex flex-col items-start gap-2.5 rounded-md border border-dashed border-line bg-rest-soft/40 px-4 py-3.5 sm:flex-row sm:items-center sm:justify-between">
+          <p className="text-sm leading-6 text-ink/85">
+            {DIM_DESC[dim]}——<span className="font-semibold">登录后即可参与本板块投票</span>
+            ，展示结果只统计挡位，不显示你的身份。
+          </p>
+          <Link
+            href="/login?next=%2Fpoll"
+            className="inline-flex min-h-10 shrink-0 items-center rounded-md px-5 text-sm font-bold text-white transition hover:opacity-90"
+            style={{ backgroundColor: theme.base }}
+          >
+            登录 / 注册
+          </Link>
+        </div>
       )}
 
       <div className="mt-6 grid gap-5 lg:grid-cols-2">
@@ -551,7 +572,7 @@ function DimensionSection({
 
 /* ---------- 主组件 ---------- */
 
-export default function PollBoard({ initialStats }: Props) {
+export default function PollBoard({ initialStats, isLoggedIn }: Props) {
   const [stats, setStats] = useState<PollStats>(initialStats);
   const [choices, setChoices] = useState<PollAnswers>({});
   const [myVotes, setMyVotes] = useState<PollAnswers>({});
@@ -561,6 +582,7 @@ export default function PollBoard({ initialStats }: Props) {
   >({});
 
   useEffect(() => {
+    if (!isLoggedIn) return;
     let alive = true;
     fetch("/api/poll/mine", { credentials: "same-origin" })
       .then((r) => (r.ok ? r.json() : null))
@@ -573,7 +595,7 @@ export default function PollBoard({ initialStats }: Props) {
     return () => {
       alive = false;
     };
-  }, []);
+  }, [isLoggedIn]);
 
   async function submitOne(dim: PollDimension) {
     const key = choices[dim];
@@ -624,7 +646,8 @@ export default function PollBoard({ initialStats }: Props) {
   return (
     <div className="space-y-6">
       <p className="rounded-md bg-rest-soft/50 px-4 py-2.5 text-center text-xs leading-5 text-ink/80">
-        匿名投票 · 不收集任何个人身份信息 · 三个板块各自独立计票，每个板块一票，可随时修改
+        投票需登录，浏览无需登录 · 匿名展示，不收集任何个人身份信息 ·
+        三个板块各自独立计票，每个板块一票，可随时修改
       </p>
 
       {POLL_DIMENSIONS.map((dim, i) => (
@@ -633,6 +656,7 @@ export default function PollBoard({ initialStats }: Props) {
           dim={dim}
           index={i}
           stats={stats}
+          isLoggedIn={isLoggedIn}
           choice={choices[dim]}
           myVote={myVotes[dim]}
           busy={busy === dim}

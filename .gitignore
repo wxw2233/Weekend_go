@@ -13,3 +13,10 @@ out
 素材/
 .start-admin.cmd
 修复建议*.md
+
+# sensitive / local-only
+.dsh-webui-credentials.txt
+_merge_creds.py
+_agent-presets.tgz
+tsconfig.tsbuildinfo
+.workbuddy/
