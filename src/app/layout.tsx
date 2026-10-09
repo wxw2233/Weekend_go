@@ -28,12 +28,24 @@ export default function RootLayout({
           <div className="container-page flex min-h-14 items-center justify-between gap-2">
             <Link
               href="/"
-              className="shrink-0 text-lg font-bold tracking-tight text-ink hover:text-rest"
+              className="group flex shrink-0 items-center gap-2"
+              aria-label="返回站点门户首页"
             >
-              双休go!
+              <span className="text-lg font-bold tracking-tight text-ink group-hover:text-rest">
+                双休go!
+              </span>
+              <span className="rounded bg-rest px-1.5 py-0.5 text-xs font-bold leading-none text-white">
+                门户
+              </span>
             </Link>
 
             <nav className="hidden items-center gap-1 text-sm md:flex">
+              <Link
+                href="/"
+                className="min-h-10 px-2.5 py-2 font-medium text-ink hover:text-rest"
+              >
+                门户
+              </Link>
               <Link
                 href="/sx#directory"
                 className="min-h-10 px-2.5 py-2 font-medium text-ink hover:text-rest"
@@ -64,7 +76,7 @@ export default function RootLayout({
         <main className="pb-[env(safe-area-inset-bottom)]">{children}</main>
         <footer className="border-t border-line bg-paper">
           <div className="container-page py-6 text-sm text-haze">
-            双休go! · 信息参考目录 · 以劳动合同与实际制度为准
+            双休go! 门户 · 企业休息制度目录 · 以劳动合同与实际制度为准
           </div>
         </footer>
       </body>

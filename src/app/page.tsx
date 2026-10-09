@@ -1,4 +1,5 @@
 import Link from "next/link";
+import type { Metadata } from "next";
 
 type Section = {
   title: string;
@@ -30,26 +31,52 @@ const SECTIONS: Section[] = [
   },
 ];
 
+export const metadata: Metadata = {
+  title: "双休go! 站点门户 · 全部板块",
+  description:
+    "「双休go!」站点门户：企业休息制度目录、职场内容与实用工具，多板块统一导航。",
+};
+
 export default function PortalPage() {
   return (
     <>
-      <section className="border-b border-line bg-[#F3F0E8]">
-        <div className="container-page py-12 sm:py-16">
-          <p className="text-xs font-semibold uppercase tracking-widest text-rest">
-            Shuangxiu Go!
+      <section className="border-b border-line bg-rest-deep">
+        <div className="container-page py-14 sm:py-20">
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-rest-soft">
+            Shuangxiu Go! Portal
           </p>
-          <h1 className="mt-2 text-2xl font-bold leading-snug text-ink sm:text-3xl">
-            先问休不休，再决定买不买
+          <h1 className="mt-3 text-3xl font-bold leading-tight text-white sm:text-4xl">
+            双休go! 站点门户
           </h1>
-          <p className="mt-3 max-w-xl text-sm leading-6 text-haze sm:text-base">
-            这里是「双休go!」站点门户：围绕职场休息制度，聚合信息目录、工具与讨论。
-            选择一个板块开始。
+          <p className="mt-4 max-w-2xl text-base leading-7 text-rest-soft">
+            这是一个多板块站点：以企业休息制度目录「双休go!」为起点，逐步聚合职场内容与实用工具。
+            先问休不休，再决定买不买。
+          </p>
+          <div className="mt-7 flex flex-wrap items-center gap-3">
+            <Link
+              href="/sx"
+              className="inline-flex min-h-11 items-center rounded-md bg-white px-5 text-sm font-bold text-rest-deep transition hover:bg-rest-soft"
+            >
+              进入双休go! →
+            </Link>
+            <Link
+              href="#sections"
+              className="inline-flex min-h-11 items-center rounded-md border border-white/40 px-5 text-sm font-semibold text-white transition hover:bg-white/10"
+            >
+              浏览全部板块
+            </Link>
+          </div>
+          <p className="mt-6 text-xs font-medium text-rest-soft">
+            当前 1 个板块已上线 · 2 个板块筹备中
           </p>
         </div>
       </section>
-      <section id="sections" className="container-page py-10">
-        <h2 className="text-lg font-bold text-ink">板块导航</h2>
-        <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      <section id="sections" className="container-page py-10 sm:py-12">
+        <div className="flex flex-wrap items-baseline justify-between gap-2">
+          <h2 className="text-xl font-bold text-ink">板块导航</h2>
+          <span className="text-sm text-haze">更多板块陆续上线</span>
+        </div>
+        <div className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {SECTIONS.map((s) => {
             const live = s.status === "live";
             const inner = (
@@ -83,14 +110,14 @@ export default function PortalPage() {
               <Link
                 key={s.title}
                 href={s.href!}
-                className="flex min-h-44 flex-col rounded-lg border border-line bg-white p-5 transition hover:border-rest hover:shadow-sm"
+                className="flex min-h-48 flex-col rounded-lg border-2 border-rest bg-white p-5 shadow-rest transition hover:-translate-y-0.5 hover:shadow-lift"
               >
                 {inner}
               </Link>
             ) : (
               <div
                 key={s.title}
-                className="flex min-h-44 flex-col rounded-lg border border-dashed border-line bg-paper p-5 opacity-70"
+                className="flex min-h-48 flex-col rounded-lg border border-dashed border-line bg-paper p-5 opacity-70"
               >
                 {inner}
               </div>
