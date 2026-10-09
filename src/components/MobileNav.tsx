@@ -76,6 +76,12 @@ export default function MobileNav() {
             <Link href="/" className={linkClass} onClick={() => setOpen(false)}>
               门户首页
             </Link>
+            <Link href="/holiday" className={linkClass} onClick={() => setOpen(false)}>
+              假期日历
+            </Link>
+            <Link href="/poll" className={linkClass} onClick={() => setOpen(false)}>
+              数据投票
+            </Link>
             <Link href="/sx#directory" className={linkClass} onClick={() => setOpen(false)}>
               企业库
             </Link>

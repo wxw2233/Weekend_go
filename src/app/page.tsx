@@ -18,6 +18,20 @@ const SECTIONS: Section[] = [
     tag: "企业休息制度",
   },
   {
+    title: "休息日历",
+    desc: "全年放假调休一图看清：日历热力图、下一个假期倒计时与全年休息构成统计。",
+    href: "/holiday",
+    status: "live",
+    tag: "假期与调休",
+  },
+  {
+    title: "数据投票",
+    desc: "匿名投出你的每日工时、薪资挡位和每周休息天数，实时看大家真实的上班状态。",
+    href: "/poll",
+    status: "live",
+    tag: "职场投票",
+  },
+  {
     title: "职场内容",
     desc: "职场观察、劳动法规解读与休息制度动态，图文内容板块。",
     status: "soon",
@@ -67,7 +81,7 @@ export default function PortalPage() {
             </Link>
           </div>
           <p className="mt-6 text-xs font-medium text-rest-soft">
-            当前 1 个板块已上线 · 2 个板块筹备中
+            当前 3 个板块已上线 · 2 个板块筹备中
           </p>
         </div>
       </section>

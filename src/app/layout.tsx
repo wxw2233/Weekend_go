@@ -47,6 +47,18 @@ export default function RootLayout({
                 门户
               </Link>
               <Link
+                href="/holiday"
+                className="min-h-10 px-2.5 py-2 font-medium text-ink hover:text-rest"
+              >
+                假期日历
+              </Link>
+              <Link
+                href="/poll"
+                className="min-h-10 px-2.5 py-2 font-medium text-ink hover:text-rest"
+              >
+                数据投票
+              </Link>
+              <Link
                 href="/sx#directory"
                 className="min-h-10 px-2.5 py-2 font-medium text-ink hover:text-rest"
               >

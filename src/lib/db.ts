@@ -114,6 +114,13 @@ export function getDb(): DatabaseSync {
       lastSent TEXT NOT NULL,
       PRIMARY KEY (email, scene)
     );
+    CREATE TABLE IF NOT EXISTS poll_votes (
+      dimension TEXT NOT NULL,
+      voterKey TEXT NOT NULL,
+      choice TEXT NOT NULL,
+      updatedAt TEXT NOT NULL,
+      PRIMARY KEY (dimension, voterKey)
+    );
     CREATE INDEX IF NOT EXISTS idx_submissions_status ON submissions(status);
     CREATE INDEX IF NOT EXISTS idx_claims_status ON claims(status);
     CREATE INDEX IF NOT EXISTS idx_user_sessions_user ON user_sessions(userId);
