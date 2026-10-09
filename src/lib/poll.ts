@@ -46,6 +46,24 @@ export function getPollStats(): PollStats {
   return stats;
 }
 
+export function getMyVotes(voterKey: string): PollAnswers {
+  const out: PollAnswers = {};
+  try {
+    const rows = getDb()
+      .prepare("SELECT dimension, choice FROM poll_votes WHERE voterKey = ?")
+      .all(voterKey) as { dimension: string; choice: string }[];
+    for (const r of rows) {
+      const dim = r.dimension as PollDimension;
+      if (POLL_DIMENSIONS.includes(dim) && isValidChoice(dim, r.choice)) {
+        out[dim] = r.choice;
+      }
+    }
+  } catch {
+    // table not ready yet
+  }
+  return out;
+}
+
 export function castVote(
   voterKey: string,
   answers: PollAnswers,
