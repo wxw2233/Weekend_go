@@ -6,8 +6,10 @@ import { RestBadge, SourceBadge } from "@/components/StatusBadge";
 import CorrectButton from "@/components/CorrectButton";
 import CommentsSection from "@/components/CommentsSection";
 import AdminDeleteCompany from "@/components/AdminDeleteCompany";
+import CompanyVoteBox from "@/components/CompanyVoteBox";
 import { getCompany } from "@/lib/store";
 import { getCurrentUser } from "@/lib/user-auth-http";
+import { companyVoteStat, myCompanyVote } from "@/lib/company-votes";
 import { restDaysPerWeek, restLevel } from "@/lib/types";
 
 const cardBorder: Record<string, string> = {
@@ -108,6 +110,14 @@ export default async function CompanyPage({ params }: Props) {
       <p className="mt-3 text-xs leading-relaxed text-haze">
         以上为信息参考，不构成法律评价；请以劳动合同与实际制度为准。
       </p>
+
+      <CompanyVoteBox
+        companyId={company.id}
+        initialStat={companyVoteStat(company.id)}
+        initialMyVote={user ? myCompanyVote(`u:${user.id}`, company.id) : null}
+        isLoggedIn={Boolean(user)}
+        backHref={`/sx/companies/${company.id}`}
+      />
 
       <div className="mt-4 flex flex-wrap items-start gap-3">
         <CorrectButton

@@ -121,6 +121,14 @@ export function getDb(): DatabaseSync {
       updatedAt TEXT NOT NULL,
       PRIMARY KEY (dimension, voterKey)
     );
+    CREATE TABLE IF NOT EXISTS company_votes (
+      companyId TEXT NOT NULL,
+      voterKey TEXT NOT NULL,
+      choice TEXT NOT NULL,
+      updatedAt TEXT NOT NULL,
+      PRIMARY KEY (companyId, voterKey)
+    );
+    CREATE INDEX IF NOT EXISTS idx_company_votes_company ON company_votes(companyId);
     CREATE INDEX IF NOT EXISTS idx_submissions_status ON submissions(status);
     CREATE INDEX IF NOT EXISTS idx_claims_status ON claims(status);
     CREATE INDEX IF NOT EXISTS idx_user_sessions_user ON user_sessions(userId);

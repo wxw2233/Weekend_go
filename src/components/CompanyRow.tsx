@@ -3,6 +3,8 @@ import type { Company } from "@/lib/types";
 import { restLevel } from "@/lib/types";
 import { RestBadge, SourceBadge } from "@/components/StatusBadge";
 import WeekStrip from "@/components/WeekStrip";
+import VoteBar from "@/components/VoteBar";
+import type { CompanyVoteStat } from "@/lib/company-votes";
 
 const cardBorder: Record<string, string> = {
   green: "border-rest bg-rest-soft/25",
@@ -11,7 +13,13 @@ const cardBorder: Record<string, string> = {
   gray: "border-line bg-white",
 };
 
-export default function CompanyRow({ company }: { company: Company }) {
+export default function CompanyRow({
+  company,
+  votes,
+}: {
+  company: Company;
+  votes?: CompanyVoteStat;
+}) {
   const level = restLevel(company.restType, company.restDays);
 
   return (
@@ -39,6 +47,12 @@ export default function CompanyRow({ company }: { company: Company }) {
         />
         <SourceBadge source={company.source} />
       </div>
+
+      {votes && (
+        <div className="mt-3 border-t border-line/70 pt-2.5">
+          <VoteBar stat={votes} />
+        </div>
+      )}
     </Link>
   );
 }

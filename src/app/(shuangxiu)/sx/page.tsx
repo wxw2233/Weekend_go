@@ -4,6 +4,7 @@ import FilterBar from "@/components/FilterBar";
 import CompanyList from "@/components/CompanyList";
 import HeroBand from "@/components/HeroBand";
 import { filterCompanies, listCompanies, uniqueValues } from "@/lib/store";
+import { companyVoteStatsMap } from "@/lib/company-votes";
 import { REST_TYPES, isDualRest } from "@/lib/types";
 
 type SearchParams = Promise<{
@@ -26,6 +27,8 @@ export default async function HomePage({
   });
   const cities = uniqueValues(all, "city");
   const dual = all.filter((c) => isDualRest(c.restType, c.restDays)).length;
+  const voteMap = companyVoteStatsMap(filtered.map((c) => c.id));
+  const votes = Object.fromEntries(voteMap);
 
   return (
     <>
@@ -54,7 +57,7 @@ export default async function HomePage({
               </Link>
             </div>
           ) : (
-            <CompanyList companies={filtered} />
+            <CompanyList companies={filtered} votes={votes} />
           )}
 
           <p className="mt-6 text-xs leading-relaxed text-haze">

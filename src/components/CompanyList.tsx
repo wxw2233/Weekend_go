@@ -2,11 +2,18 @@
 
 import { useEffect, useMemo, useState } from "react";
 import type { Company } from "@/lib/types";
+import type { CompanyVoteStat } from "@/lib/company-votes";
 import CompanyRow from "@/components/CompanyRow";
 
 const PAGE_SIZE = 8;
 
-export default function CompanyList({ companies }: { companies: Company[] }) {
+export default function CompanyList({
+  companies,
+  votes,
+}: {
+  companies: Company[];
+  votes?: Record<string, CompanyVoteStat>;
+}) {
   const [page, setPage] = useState(1);
   const totalPages = Math.max(1, Math.ceil(companies.length / PAGE_SIZE));
 
@@ -25,7 +32,7 @@ export default function CompanyList({ companies }: { companies: Company[] }) {
       <ul className="mt-3 grid gap-2.5 sm:mt-4 sm:grid-cols-2 sm:gap-3">
         {visible.map((c) => (
           <li key={c.id}>
-            <CompanyRow company={c} />
+            <CompanyRow company={c} votes={votes?.[c.id]} />
           </li>
         ))}
       </ul>
