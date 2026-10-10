@@ -23,7 +23,7 @@ export default function FilterBar({ cities, restTypes }: Props) {
         else params.set(k, v);
       });
       const qs = params.toString();
-      router.push(qs ? `/?${qs}` : "/");
+      router.push(qs ? `/sx?${qs}` : "/sx");
     },
     [router, searchParams],
   );
