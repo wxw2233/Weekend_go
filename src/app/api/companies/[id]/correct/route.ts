@@ -5,6 +5,7 @@ import { REST_TYPES, type RestType } from "@/lib/types";
 import { parseRestDays, validateRestDays } from "@/lib/rest-days";
 import { requireJson } from "@/lib/http-guard";
 import { getRequestUser, userUnauthorized } from "@/lib/user-auth-http";
+import { anyContainsBannedWords } from "@/lib/banned-words";
 
 export async function POST(
   request: Request,
@@ -58,6 +59,13 @@ export async function POST(
   const restDaysError = validateRestDays(restType, restDays);
   if (restDaysError) {
     return NextResponse.json({ error: restDaysError }, { status: 400 });
+  }
+
+  if (anyContainsBannedWords(note, evidenceNote, str(body.contact, 80))) {
+    return NextResponse.json(
+      { error: "内容包含不允许的文字，请修改后重试" },
+      { status: 400 },
+    );
   }
 
   const sub = await createSubmission({

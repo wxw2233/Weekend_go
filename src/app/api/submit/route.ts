@@ -11,6 +11,7 @@ import { REST_TYPES, type RestType } from "@/lib/types";
 import { parseRestDays, validateRestDays } from "@/lib/rest-days";
 import { requireJson } from "@/lib/http-guard";
 import { getRequestUser, userUnauthorized } from "@/lib/user-auth-http";
+import { anyContainsBannedWords } from "@/lib/banned-words";
 
 /**
  * 成功才计入主配额；1 分钟内成功 ≤3 次不触发。
@@ -89,15 +90,25 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "请填写证据说明" }, { status: 400 });
   }
 
+  const note = str(body.note);
+  const contact = str(body.contact, 80);
+  if (anyContainsBannedWords(companyName, note, evidenceNote, contact)) {
+    markFail(limit.failKey);
+    return NextResponse.json(
+      { error: "内容包含不允许的文字，请修改后重试" },
+      { status: 400 },
+    );
+  }
+
   const sub = await createSubmission({
     companyName,
     restType,
     city: str(body.city, 40),
     industry: str(body.industry, 40),
     position,
-    note: str(body.note),
+    note,
     evidenceNote,
-    contact: str(body.contact, 80),
+    contact,
     restDays,
   });
 

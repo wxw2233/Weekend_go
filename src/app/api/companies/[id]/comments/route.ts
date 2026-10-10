@@ -9,6 +9,7 @@ import {
 import { getRequestUser } from "@/lib/user-auth-http";
 import { clientIp, rateLimit } from "@/lib/rate-limit";
 import { requireJson } from "@/lib/http-guard";
+import { containsBannedWords } from "@/lib/banned-words";
 
 export async function GET(
   request: Request,
@@ -85,6 +86,12 @@ export async function POST(
   }
   if (content.length > 500) {
     return NextResponse.json({ error: "评论最多 500 字" }, { status: 400 });
+  }
+  if (containsBannedWords(content)) {
+    return NextResponse.json(
+      { error: "评论包含不允许的内容，请修改后重试" },
+      { status: 400 },
+    );
   }
 
   let parentId: string | null = null;
