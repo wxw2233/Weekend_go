@@ -14,6 +14,7 @@ export default function FilterBar({ cities, restTypes }: Props) {
   const [q, setQ] = useState(searchParams.get("q") || "");
   const rest = searchParams.get("rest") || "全部";
   const city = searchParams.get("city") || "全部";
+  const sort = searchParams.get("sort") || "default";
 
   const apply = useCallback(
     (next: Record<string, string>) => {
@@ -23,8 +24,7 @@ export default function FilterBar({ cities, restTypes }: Props) {
         else params.set(k, v);
       });
       const qs = params.toString();
-      router.push(qs ? `/sx?${qs}` : "/sx");
-    },
+      router.push(qs ? `/sx?${qs}` : "/sx");    },
     [router, searchParams],
   );
 
@@ -37,7 +37,7 @@ export default function FilterBar({ cities, restTypes }: Props) {
   }, [q, apply, searchParams]);
 
   return (
-    <div className="grid gap-2 rounded-lg border border-line bg-white p-2.5 sm:grid-cols-[1.5fr_1fr_1fr] sm:gap-3 sm:p-3">
+    <div className="grid gap-2 rounded-lg border border-line bg-white p-2.5 sm:grid-cols-[1.6fr_1fr_1fr_1fr] sm:gap-3 sm:p-3">
       <input
         className="field"
         placeholder="企业 / 行业 / 城市"
@@ -69,6 +69,16 @@ export default function FilterBar({ cities, restTypes }: Props) {
           {cities.map((c) => (
             <option key={c}>{c}</option>
           ))}
+        </select>
+        <select
+          className="field col-span-2 sm:col-span-1"
+          value={sort}
+          onChange={(e) => apply({ sort: e.target.value === "default" ? "" : e.target.value })}
+          aria-label="排序"
+        >
+          <option value="default">默认排序</option>
+          <option value="comments">评论最多</option>
+          <option value="trust">真实度最高</option>
         </select>
       </div>
     </div>

@@ -946,6 +946,28 @@ export function countCompanyComments(companyId: string): number {
   return Number(row.n) || 0;
 }
 
+/** 批量统计多企业的评论数（列表排序用） */
+export function commentCountsByCompany(
+  companyIds: string[],
+): Record<string, number> {
+  const out: Record<string, number> = {};
+  for (const id of companyIds) out[id] = 0;
+  if (companyIds.length === 0) return out;
+  try {
+    const rows = getDb()
+      .prepare(
+        "SELECT companyId, COUNT(*) AS n FROM comments GROUP BY companyId",
+      )
+      .all() as { companyId: string; n: number }[];
+    for (const r of rows) {
+      if (r.companyId in out) out[r.companyId] = Number(r.n) || 0;
+    }
+  } catch {
+    // table not ready yet
+  }
+  return out;
+}
+
 export function listCommentsPage(
   companyId: string,
   viewerId: string | null | undefined,

@@ -5,12 +5,14 @@ import CompanyList from "@/components/CompanyList";
 import HeroBand from "@/components/HeroBand";
 import { filterCompanies, listCompanies, uniqueValues } from "@/lib/store";
 import { companyVoteStatsMap } from "@/lib/company-votes";
+import { commentCountsByCompany } from "@/lib/db";
 import { REST_TYPES, isDualRest } from "@/lib/types";
 
 type SearchParams = Promise<{
   q?: string;
   rest?: string;
   city?: string;
+  sort?: string;
 }>;
 
 export default async function HomePage({
@@ -27,8 +29,23 @@ export default async function HomePage({
   });
   const cities = uniqueValues(all, "city");
   const dual = all.filter((c) => isDualRest(c.restType, c.restDays)).length;
+
   const voteMap = companyVoteStatsMap(filtered.map((c) => c.id));
   const votes = Object.fromEntries(voteMap);
+  const commentCounts = commentCountsByCompany(filtered.map((c) => c.id));
+
+  if (params.sort === "comments") {
+    filtered.sort(
+      (a, b) => (commentCounts[b.id] ?? 0) - (commentCounts[a.id] ?? 0),
+    );
+  } else if (params.sort === "trust") {
+    const trust = (id: string) => {
+      const s = voteMap.get(id);
+      const total = (s?.real ?? 0) + (s?.fake ?? 0);
+      return total > 0 ? s!.real / total : -1;
+    };
+    filtered.sort((a, b) => trust(b.id) - trust(a.id));
+  }
 
   return (
     <>
