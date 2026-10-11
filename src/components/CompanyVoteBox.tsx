@@ -120,6 +120,10 @@ export default function CompanyVoteBox({
           </Link>
         </div>
       )}
+
+      <p className="mt-3 text-xs leading-5 text-haze">
+        投票结果仅为网友个人经验分享，仅供参考，不构成对企业事实的认定；如你认为内容与事实不符，可通过页脚的企业申诉渠道联系我们。
+      </p>
     </div>
   );
 }

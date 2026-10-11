@@ -88,7 +88,16 @@ export default function RootLayout({
         <main className="pb-[env(safe-area-inset-bottom)]">{children}</main>
         <footer className="border-t border-line bg-paper">
           <div className="container-page py-6 text-sm text-haze">
-            双休go! 门户 · 企业休息制度目录 · 以劳动合同与实际制度为准
+            <p>双休go! 门户 · 企业休息制度目录 · 以劳动合同与实际制度为准</p>
+            <p className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs">
+              <span>内容投诉 / 企业申诉：wxw2749@outlook.com</span>
+              <Link href="/privacy" className="hover:text-rest hover:underline">
+                隐私政策
+              </Link>
+              <Link href="/terms" className="hover:text-rest hover:underline">
+                用户协议
+              </Link>
+            </p>
           </div>
         </footer>
       </body>
