@@ -13,7 +13,8 @@ export async function POST(request: Request) {
   if (badCt) return badCt;
 
   const ip = clientIp(request);
-  const okKey = `admin-login:ok:${ip}`;
+  // counts every credential attempt, success or failure
+  const tryKey = `admin-login:try:${ip}`;
   const failKey = `admin-login:fail:${ip}`;
 
   const failPeek = failCooldownPeek(failKey, 3_000);
@@ -23,7 +24,7 @@ export async function POST(request: Request) {
       { status: 429 },
     );
   }
-  const burst = rateLimitPeek(okKey, 5, 15 * 60 * 1000);
+  const burst = rateLimitPeek(tryKey, 5, 15 * 60 * 1000);
   if (!burst.ok) {
     return NextResponse.json(
       { error: `尝试过于频繁，请 ${burst.retryAfterSec} 秒后再试` },
@@ -42,12 +43,13 @@ export async function POST(request: Request) {
   const token = typeof body.token === "string" ? body.token.trim() : "";
   if (!isAdminPassword(token)) {
     markFail(failKey);
+    rateLimitRecord(tryKey);
     logWarn("admin_login_failed", { ip });
     return NextResponse.json({ error: "口令错误" }, { status: 401 });
   }
 
   const session = createAdminSession();
   await setAdminSessionCookie(session);
-  rateLimitRecord(okKey);
+  rateLimitRecord(tryKey);
   return NextResponse.json({ ok: true });
 }

@@ -1,14 +1,20 @@
-import { createHmac, randomBytes, timingSafeEqual } from "crypto";
-
-const SECRET =
-  process.env.CAPTCHA_SECRET ||
-  process.env.ADMIN_TOKEN ||
-  "sx-captcha-dev-secret";
+import { randomBytes, timingSafeEqual } from "crypto";
 
 const CODE_LEN = 4;
 const TTL_MS = 5 * 60 * 1000;
+// hard cap so captcha floods cannot grow the store unbounded
+const MAX_PENDING = 10_000;
 
 const ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+
+// token is a random id; the answer never leaves the server
+const pending = new Map<string, { code: string; exp: number }>();
+
+function pruneExpired(now: number) {
+  for (const [token, rec] of pending) {
+    if (rec.exp <= now) pending.delete(token);
+  }
+}
 
 function randomCode(len = CODE_LEN): string {
   const bytes = randomBytes(len);
@@ -19,42 +25,20 @@ function randomCode(len = CODE_LEN): string {
   return out;
 }
 
-function sign(payload: string): string {
-  return createHmac("sha256", SECRET).update(payload).digest("base64url");
-}
-
-/** token = base64url(code|exp) + "." + hmac */
-export function issueCaptchaToken(code: string): string {
-  const exp = Date.now() + TTL_MS;
-  const payload = Buffer.from(`${code.toUpperCase()}|${exp}`, "utf8").toString(
-    "base64url",
-  );
-  return `${payload}.${sign(payload)}`;
-}
-
+/** Single-use: the token is consumed whether the answer is right or wrong. */
 export function verifyCaptcha(
   token: string | null | undefined,
   input: string | null | undefined,
 ): boolean {
   if (!token || !input) return false;
+  const rec = pending.get(token);
+  pending.delete(token);
+  if (!rec || rec.exp <= Date.now()) return false;
   const raw = input.trim().toUpperCase();
-  if (raw.length !== CODE_LEN) return false;
-  const parts = token.split(".");
-  if (parts.length !== 2) return false;
-  const [payload, mac] = parts as [string, string];
-  if (sign(payload) !== mac) return false;
-  try {
-    const decoded = Buffer.from(payload, "base64url").toString("utf8");
-    const [code, expStr] = decoded.split("|");
-    const exp = Number(expStr);
-    if (!code || !Number.isFinite(exp) || Date.now() > exp) return false;
-    const a = Buffer.from(code, "utf8");
-    const b = Buffer.from(raw, "utf8");
-    if (a.length !== b.length) return false;
-    return timingSafeEqual(a, b);
-  } catch {
-    return false;
-  }
+  if (raw.length !== rec.code.length) return false;
+  const a = Buffer.from(rec.code, "utf8");
+  const b = Buffer.from(raw, "utf8");
+  return timingSafeEqual(a, b);
 }
 
 export function generateCaptchaSvg(code: string): string {
@@ -88,11 +72,15 @@ export function generateCaptchaSvg(code: string): string {
 }
 
 export function createCaptcha(): { token: string; dataUrl: string } {
+  const now = Date.now();
+  if (pending.size >= MAX_PENDING) pruneExpired(now);
   const code = randomCode();
+  const token = randomBytes(16).toString("base64url");
+  pending.set(token, { code, exp: now + TTL_MS });
   const svg = generateCaptchaSvg(code);
   const dataUrl = `data:image/svg+xml;base64,${Buffer.from(svg, "utf8").toString("base64")}`;
   return {
-    token: issueCaptchaToken(code),
+    token,
     dataUrl,
   };
 }
